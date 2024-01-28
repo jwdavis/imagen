@@ -1,9 +1,11 @@
 [client]
+
 toolbarMode = "minimal"
 
 [server]
 runOnSave = true
 port = 8080
+enableStaticServing = true
 
 [theme]
-primaryColor = "#1a73e8"
+primaryColor = "#666699"
