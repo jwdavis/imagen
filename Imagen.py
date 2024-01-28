@@ -37,6 +37,8 @@ def show_images(response):
     Returns:
     None
     """
+    if response is None:
+        return
     cols = st.columns(len(response.images), gap="small")
     clicks = [None for _ in range(len(response.images))]
     for i, image in enumerate(response.images):
@@ -82,16 +84,15 @@ def generate_images(prompt):
     response = None
     error = None
     try:
-        model = ImageGenerationModel.from_pretrained("imagegeneration@002")
+        # consider implementing base_image
+        model = ImageGenerationModel.from_pretrained("imagegeneration@005")
         response = model.generate_images(
             prompt=prompt,
-            number_of_images=3
+            number_of_images=3,
+            guidance_scale=21
         )
     except Exception as e:
-        if '57734940' in str(e):
-            error = {"error": "Image generation failed due to policy violation."}
-        else:
-            error = {"error": "Image generation failed due to an unknown error."}
+        error = {"error": e}
     return response, error
 
 def clear_state():
@@ -107,26 +108,41 @@ st.image(
     width=300
 )
 st.title("Google GenAI image creation")
-st.markdown("""<h5>Please use responsibly. Don't generate inappropriate 
-            images, or too many.</h5>""", unsafe_allow_html=True)
-add_vertical_space(2)
+st.markdown(
+    """<h5>Please use responsibly and in moderation.
+    <a href="https://cloud.google.com/vertex-ai/docs/generative-ai/image/usage-guidelines" 
+    target="_blank" rel="noopener noreferrer" style="text-decoration: none;">
+    <sup style="font-size: 10px;color:black;vertical-align: middle;">&#9432;</sup></a></h5>""",
+    unsafe_allow_html=True,
+)
+add_vertical_space(1)
 
 last_prompt = st.session_state.get("prompt", None)
-if prompt := st.text_input(":sunglasses: What would you like to see?"):
-    if prompt != last_prompt:
-        clear_state()
-        st.session_state["prompt"] = prompt
+col1, col2 = st.columns([0.86, 0.14], gap="small")
+with col1:
+    if prompt := st.text_input(":sunglasses: What would you like to see?"):
+        if prompt != last_prompt:
+            clear_state()
+            st.session_state["prompt"] = prompt
 
-    if "response" not in st.session_state:
-        with st.spinner("Generating images..."):
-            response, error = generate_images(prompt)
+        if "response" not in st.session_state:
+            with st.spinner("Generating images..."):
+                response, error = generate_images(prompt)
             if error:
-                print('error')
-                st.write(f"{error['error']} :broken_heart:. Try a different prompt.")
+                st.write(f":broken_heart:. {error['error']}")
+                st.write("Try a different prompt.")
+                st.session_state["prompt"] = ""
                 st.stop()
             st.session_state["response"] = response
-    else:
-        response = st.session_state["response"]
+        else:
+            response = st.session_state["response"]
+with col2:
+    container = st.container()
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.button(
+        label=":arrows_counterclockwise: Rerun",
+        on_click=clear_state
+    )
 
-    add_vertical_space(1)
-    show_images(st.session_state["response"])
+add_vertical_space(1)
+show_images(st.session_state.get("response", None))
