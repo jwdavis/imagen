@@ -1,1 +1,1 @@
-# imagen
+# Simple application used to generate images using Imagen API
