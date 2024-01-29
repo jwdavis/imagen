@@ -51,24 +51,6 @@ def show_images(response):
             mime="image/png"
         )
 
-def create_download_button(options):
-    """
-    Creates a download button for the selected image.
-
-    Args:
-        options: The selected image options.
-
-    Returns:
-        None
-    """
-    if options is not None:
-        st.download_button(
-            label="Download Image",
-            data=response.images[options]._image_bytes,
-            file_name='image.png',
-            mime='image/png'
-        )
-
 def generate_images(prompt):
     """
     Generates images based on the given prompt.
